@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cape Rides – Your Personal Driver</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<style>
+  :root {
+    --orange: #E8440A;
+    --amber: #F97316;
+    --bg: #F8F5F1;
+    --card: #FFFFFF;
+    --card2: #F0EBE3;
+    --text: #1A1208;
+    --muted: #9A8878;
+    --green: #16A34A;
+    --border: #E2D9CE;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Outfit', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; overflow-x: hidden; }
+  .wrapper { max-width: 480px; margin: 0 auto; min-height: 100vh; background: var(--bg); box-shadow: 0 0 60px rgba(0,0,0,0.1); }
+
+  /* HERO */
+  .hero { position: relative; padding: 40px 24px 32px; background: linear-gradient(135deg, #fff8f4 0%, #fff1e6 50%, #fff8f4 100%); overflow: hidden; border-bottom: 3px solid var(--orange); }
+  .hero::before { content: ''; position: absolute; top: -60px; right: -60px; width: 280px; height: 280px; background: radial-gradient(circle, rgba(232,68,10,0.12) 0%, transparent 70%); border-radius: 50%; }
+  .hero::after { content: ''; position: absolute; bottom: -80px; left: -40px; width: 220px; height: 220px; background: radial-gradient(circle, rgba(249,115,22,0.1) 0%, transparent 70%); border-radius: 50%; }
+  .badge { display: inline-block; background: var(--orange); color: #fff; font-size: 10px; font-weight: 700; letter-spacing: 3px; text-transform: uppercase; padding: 4px 12px; border-radius: 20px; margin-bottom: 20px; }
+  .avatar-row { display: flex; align-items: center; gap: 20px; position: relative; z-index: 2; }
+  .avatar { width: 80px; height: 80px; border-radius: 50%; background: linear-gradient(135deg, var(--orange), var(--amber)); display: flex; align-items: center; justify-content: center; font-family: 'Bebas Neue', sans-serif; font-size: 32px; color: #fff; flex-shrink: 0; box-shadow: 0 8px 24px rgba(232,68,10,0.35); border: 3px solid rgba(255,255,255,0.8); }
+  .driver-name { font-family: 'Bebas Neue', sans-serif; font-size: 38px; line-height: 1; letter-spacing: 2px; background: linear-gradient(90deg, var(--text) 0%, var(--orange) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+  .driver-title { font-size: 13px; color: var(--orange); font-weight: 600; letter-spacing: 2px; text-transform: uppercase; margin-top: 4px; }
+  .driver-sub { font-size: 12px; color: var(--muted); margin-top: 3px; }
+
+  /* STATS */
+  .stats { display: flex; background: var(--card); border-bottom: 1px solid var(--border); box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+  .stat { flex: 1; text-align: center; padding: 14px 8px; border-right: 1px solid var(--border); }
+  .stat:last-child { border-right: none; }
+  .stat-num { font-family: 'Bebas Neue', sans-serif; font-size: 26px; color: var(--orange); line-height: 1; }
+  .stat-label { font-size: 9px; color: var(--muted); letter-spacing: 1px; text-transform: uppercase; margin-top: 2px; }
+
+  /* SECTION */
+  .section { padding: 24px; border-bottom: 1px solid var(--border); background: var(--bg); }
+  .section-title { font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: var(--orange); font-weight: 700; margin-bottom: 16px; }
+
+  /* CONTACT */
+  .contact-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .contact-item { background: var(--card); border-radius: 12px; padding: 14px; display: flex; align-items: center; gap: 10px; border: 1px solid var(--border); transition: border-color 0.2s, box-shadow 0.2s; box-shadow: 0 1px 4px rgba(0,0,0,0.05); text-decoration: none; color: inherit; }
+  .contact-item:hover { border-color: var(--orange); box-shadow: 0 4px 12px rgba(232,68,10,0.12); }
+  .contact-icon { width: 36px; height: 36px; border-radius: 10px; background: linear-gradient(135deg, var(--orange), var(--amber)); display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; }
+  .contact-label { font-size: 9px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
+  .contact-value { font-size: 12px; font-weight: 600; color: var(--text); margin-top: 1px; }
+
+  /* WHATSAPP */
+  .book-btn { display: flex; align-items: center; justify-content: center; gap: 10px; background: linear-gradient(135deg, #25D366, #128C7E); color: #fff; font-weight: 700; font-size: 15px; letter-spacing: 1px; padding: 16px; border-radius: 14px; text-decoration: none; margin: 20px 24px 0; box-shadow: 0 4px 20px rgba(37,211,102,0.3); transition: transform 0.2s, box-shadow 0.2s; cursor: pointer; border: none; width: calc(100% - 48px); }
+  .book-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(37,211,102,0.45); }
+
+  /* ACTION BUTTONS */
+  .action-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; padding: 16px 24px; background: var(--bg); border-bottom: 1px solid var(--border); }
+  .action-btn { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px; padding: 14px 8px; border-radius: 14px; border: 1.5px solid var(--border); background: var(--card); cursor: pointer; font-family: 'Outfit', sans-serif; font-size: 11px; font-weight: 600; color: var(--text); transition: all 0.2s; box-shadow: 0 1px 4px rgba(0,0,0,0.05); text-decoration: none; text-align: center; }
+  .action-btn:hover { border-color: var(--orange); box-shadow: 0 4px 14px rgba(232,68,10,0.13); transform: translateY(-2px); }
+  .action-btn .btn-icon { font-size: 22px; }
+  .action-btn .btn-label { font-size: 9px; color: var(--muted); font-weight: 500; }
+
+  /* REVIEW */
+  .review-row { padding: 0 24px 16px; background: var(--bg); border-bottom: 1px solid var(--border); }
+  .review-btn { display: flex; align-items: center; gap: 14px; width: 100%; padding: 15px 18px; border-radius: 14px; border: 1.5px solid #FCD34D; background: #FFFBEB; cursor: pointer; font-family: 'Outfit', sans-serif; color: var(--text); text-decoration: none; transition: all 0.2s; box-shadow: 0 1px 4px rgba(0,0,0,0.05); }
+  .review-btn:hover { border-color: #F59E0B; box-shadow: 0 4px 14px rgba(245,158,11,0.2); transform: translateY(-1px); }
+  .review-stars { font-size: 20px; }
+  .review-title { font-size: 13px; font-weight: 700; }
+  .review-sub { font-size: 10px; color: var(--muted); }
+  .review-arrow { margin-left: auto; color: var(--muted); font-size: 18px; }
+
+  /* SERVICES */
+  .services { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  .service-card { background: var(--card); border-radius: 12px; padding: 14px 10px; text-align: center; border: 1px solid var(--border); box-shadow: 0 1px 4px rgba(0,0,0,0.05); transition: box-shadow 0.2s, border-color 0.2s; }
+  .service-card:hover { border-color: var(--orange); box-shadow: 0 4px 12px rgba(232,68,10,0.1); }
+  .service-icon { font-size: 22px; margin-bottom: 6px; }
+  .service-name { font-size: 11px; font-weight: 600; margin-bottom: 3px; color: var(--text); }
+  .service-desc { font-size: 9px; color: var(--muted); line-height: 1.4; }
+
+  /* MAP */
+  .map-wrap { padding: 20px 24px 0; background: var(--bg); }
+  .map-container { margin: 0 24px 24px; border-radius: 16px; overflow: hidden; border: 2px solid var(--border); box-shadow: 0 4px 16px rgba(0,0,0,0.08); }
+  .map-header { background: var(--card); padding: 14px 16px; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid var(--border); }
+  .map-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--green); box-shadow: 0 0 8px var(--green); animation: pulse 2s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.6;transform:scale(0.9)} }
+  .map-title { font-size: 13px; font-weight: 600; color: var(--text); }
+  .map-sub { font-size: 11px; color: var(--muted); margin-left: auto; }
+  #map { width: 100%; height: 360px; }
+  .dest-list { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding: 16px; background: var(--card2); }
+  .dest-tag { display: flex; align-items: center; gap: 6px; background: var(--card); border-radius: 8px; padding: 8px 10px; font-size: 11px; font-weight: 500; color: var(--text); border: 1px solid var(--border); cursor: pointer; transition: all 0.2s; }
+  .dest-tag:hover { border-color: var(--orange); background: rgba(232,68,10,0.06); }
+  .dest-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+
+  /* QR */
+  .qr-section { margin: 0 24px 24px; background: var(--card); border-radius: 16px; padding: 24px; text-align: center; border: 1px solid var(--border); box-shadow: 0 4px 16px rgba(0,0,0,0.06); }
+  .qr-title { font-family: 'Bebas Neue', sans-serif; font-size: 22px; letter-spacing: 2px; margin-bottom: 4px; color: var(--orange); }
+  .qr-sub { font-size: 11px; color: var(--muted); margin-bottom: 16px; }
+  #qrcode { display: flex; justify-content: center; margin-bottom: 16px; }
+  #qrcode canvas, #qrcode img { border-radius: 12px; border: 4px solid var(--orange); padding: 8px; background: #fff; }
+  .qr-note { font-size: 11px; color: var(--muted); background: rgba(232,68,10,0.06); border-radius: 8px; padding: 8px 12px; border: 1px solid rgba(232,68,10,0.15); }
+
+  /* FOOTER */
+  .footer { padding: 20px 24px 32px; text-align: center; border-top: 1px solid var(--border); background: var(--card); }
+  .footer-logo { font-family: 'Bebas Neue', sans-serif; font-size: 28px; letter-spacing: 4px; background: linear-gradient(90deg, var(--orange), var(--amber)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+  .footer-tagline { font-size: 11px; color: var(--muted); margin-top: 4px; }
+
+  /* BOOKING MODAL */
+  .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 1000; align-items: flex-end; justify-content: center; }
+  .modal-overlay.open { display: flex; }
+  .modal-sheet { background: var(--card); border-radius: 24px 24px 0 0; padding: 24px 24px 36px; width: 100%; max-width: 480px; animation: sheetUp 0.3s ease; position: relative; max-height: 92vh; overflow-y: auto; }
+  @keyframes sheetUp { from{transform:translateY(100%)} to{transform:translateY(0)} }
+  .modal-handle { width: 40px; height: 4px; background: var(--border); border-radius: 4px; margin: 0 auto 18px; }
+  .modal-title { font-family: 'Bebas Neue', sans-serif; font-size: 26px; letter-spacing: 2px; color: var(--orange); margin-bottom: 4px; }
+  .modal-sub { font-size: 12px; color: var(--muted); margin-bottom: 20px; }
+  .modal-close { position: absolute; top: 16px; right: 20px; background: var(--bg); border: 1px solid var(--border); border-radius: 50%; width: 32px; height: 32px; font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; color: var(--muted); }
+
+  /* FORM */
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+  .form-group { display: flex; flex-direction: column; gap: 5px; margin-bottom: 12px; }
+  .form-label { font-size: 10px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); }
+  .form-input, .form-select { padding: 11px 13px; border-radius: 10px; border: 1.5px solid var(--border); background: var(--bg); font-family: 'Outfit', sans-serif; font-size: 13px; color: var(--text); outline: none; transition: border-color 0.2s, box-shadow 0.2s; width: 100%; }
+  .form-input:focus, .form-select:focus { border-color: var(--orange); box-shadow: 0 0 0 3px rgba(232,68,10,0.08); }
+  .form-select { appearance: none; cursor: pointer; }
+  .submit-btn { width: 100%; padding: 14px; background: linear-gradient(135deg, var(--orange), var(--amber)); color: #fff; font-family: 'Outfit', sans-serif; font-weight: 700; font-size: 14px; letter-spacing: 1px; border: none; border-radius: 12px; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; box-shadow: 0 4px 16px rgba(232,68,10,0.3); margin-top: 4px; }
+  .submit-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(232,68,10,0.4); }
+  .form-success { display: none; text-align: center; padding: 24px 0; }
+  .form-success .success-icon { font-size: 48px; margin-bottom: 12px; }
+  .form-success h3 { font-size: 20px; color: var(--green); margin-bottom: 8px; }
+  .form-success p { font-size: 13px; color: var(--muted); }
+
+  /* TOAST */
+  .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(80px); background: var(--text); color: #fff; padding: 12px 22px; border-radius: 30px; font-size: 13px; font-weight: 600; z-index: 9999; transition: transform 0.35s cubic-bezier(0.34,1.56,0.64,1); white-space: nowrap; box-shadow: 0 8px 24px rgba(0,0,0,0.2); }
+  .toast.show { transform: translateX(-50%) translateY(0); }
+
+  @keyframes slideUp { from{opacity:0;transform:translateY(24px)} to{opacity:1;transform:translateY(0)} }
+  .hero{animation:slideUp 0.4s ease both}
+  .stats{animation:slideUp 0.4s ease 0.08s both}
+  .section{animation:slideUp 0.4s ease 0.13s both}
+  .action-row{animation:slideUp 0.4s ease 0.18s both}
+</style>
+</head>
+<body>
+<div class="wrapper">
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="badge">✦ Personal Driver · Cape Town</div>
+    <div class="avatar-row">
+      <div class="avatar">JD</div>
+      <div>
+        <div class="driver-name">James Dlamini</div>
+        <div class="driver-title">🚘 Licensed Personal Driver</div>
+        <div class="driver-sub">Cape Town · Winelands · Peninsula</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STATS -->
+  <div class="stats">
+    <div class="stat"><div class="stat-num">4.97</div><div class="stat-label">⭐ Rating</div></div>
+    <div class="stat"><div class="stat-num">2.4K</div><div class="stat-label">Trips Done</div></div>
+    <div class="stat"><div class="stat-num">5+</div><div class="stat-label">Yrs Exp</div></div>
+    <div class="stat"><div class="stat-num">24/7</div><div class="stat-label">Available</div></div>
+  </div>
+
+  <!-- CONTACT -->
+  <div class="section">
+    <div class="section-title">Contact Details</div>
+    <div class="contact-grid">
+      <a class="contact-item" href="tel:+27712345678">
+        <div class="contact-icon">📱</div>
+        <div><div class="contact-label">Phone</div><div class="contact-value">+27 71 234 5678</div></div>
+      </a>
+      <a class="contact-item" href="mailto:james@caperides.co.za">
+        <div class="contact-icon">✉️</div>
+        <div><div class="contact-label">Email</div><div class="contact-value">james@caperides.co.za</div></div>
+      </a>
+      <a class="contact-item" href="https://www.caperides.co.za" target="_blank" style="grid-column:span 2;">
+        <div class="contact-icon">🌐</div>
+        <div><div class="contact-label">Website</div><div class="contact-value">www.caperides.co.za</div></div>
+      </a>
+    </div>
+  </div>
+
+  <!-- SERVICES -->
+  <div class="section">
+    <div class="section-title">Services Offered</div>
+    <div class="services">
+      <div class="service-card"><div class="service-icon">🏖️</div><div class="service-name">Tours</div><div class="service-desc">Full-day sightseeing</div></div>
+      <div class="service-card"><div class="service-icon">✈️</div><div class="service-name">Airport</div><div class="service-desc">Pickups & drops</div></div>
+      <div class="service-card"><div class="service-icon">🍷</div><div class="service-name">Winelands</div><div class="service-desc">Stellenbosch & more</div></div>
+      <div class="service-card"><div class="service-icon">🌙</div><div class="service-name">Night Out</div><div class="service-desc">Safe late returns</div></div>
+      <div class="service-card"><div class="service-icon">🏢</div><div class="service-name">Corporate</div><div class="service-desc">Business transfers</div></div>
+      <div class="service-card"><div class="service-icon">🗺️</div><div class="service-name">Peninsula</div><div class="service-desc">Cape Point & beyond</div></div>
+    </div>
+  </div>
+
+  <!-- WHATSAPP -->
+  <a class="book-btn" href="https://wa.me/27712345678?text=Hi%20James!%20I%20saw%20your%20business%20card%20and%20I%27d%20like%20to%20book%20a%20ride." target="_blank">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.138.564 4.146 1.547 5.887L0 24l6.278-1.524A11.94 11.94 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.793 9.793 0 01-5.013-1.381l-.36-.213-3.726.904.946-3.624-.235-.372A9.772 9.772 0 012.182 12C2.182 6.57 6.57 2.182 12 2.182S21.818 6.57 21.818 12 17.43 21.818 12 21.818z"/></svg>
+    Book a Ride on WhatsApp
+  </a>
+
+  <!-- 3 ACTION BUTTONS -->
+  <div class="action-row">
+    <button class="action-btn" onclick="openBookingForm()">
+      <span class="btn-icon">📅</span>
+      <span>Book a Ride</span>
+      <span class="btn-label">Fill in details</span>
+    </button>
+    <button class="action-btn" onclick="saveContact()">
+      <span class="btn-icon">💾</span>
+      <span>Save Contact</span>
+      <span class="btn-label">Add to phone</span>
+    </button>
+    <button class="action-btn" onclick="shareCard()">
+      <span class="btn-icon">📤</span>
+      <span>Share Driver</span>
+      <span class="btn-label">Refer a friend</span>
+    </button>
+  </div>
+
+  <!-- REVIEW BUTTON -->
+  <div class="review-row">
+    <a class="review-btn" href="https://g.page/r/YOUR_GOOGLE_REVIEW_LINK" target="_blank">
+      <span class="review-stars">⭐⭐⭐⭐⭐</span>
+      <div>
+        <div class="review-title">Leave a Review</div>
+        <div class="review-sub">Rate James on Google</div>
+      </div>
+      <span class="review-arrow">›</span>
+    </a>
+  </div>
+
+  <!-- MAP -->
+  <div class="map-wrap">
+    <div class="section-title">🗺️ Destinations I Cover</div>
+  </div>
+  <div class="map-container">
+    <div class="map-header">
+      <div class="map-dot"></div>
+      <div class="map-title">Tourist Hotspots</div>
+      <div class="map-sub">Tap a pin to explore</div>
+    </div>
+    <div id="map"></div>
+    <div class="dest-list" id="dest-list"></div>
+  </div>
+
+  <!-- QR CODE -->
+  <div class="qr-section">
+    <div class="qr-title">Scan to Save My Card</div>
+    <div class="qr-sub">Share this page with friends & family</div>
+    <div id="qrcode"></div>
+    <div class="qr-note">📱 Works with any camera app — no download needed</div>
+  </div>
+
+  <!-- FOOTER -->
+  <div class="footer">
+    <div class="footer-logo">CAPE RIDES</div>
+    <div class="footer-tagline">Your city. Your pace. Your driver.</div>
+  </div>
+</div>
+
+<!-- BOOKING MODAL -->
+<div class="modal-overlay" id="bookingModal">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <button class="modal-close" onclick="closeBookingForm()">✕</button>
+    <div id="formContent">
+      <div class="modal-title">Book a Ride</div>
+      <div class="modal-sub">Fill in your details — James will confirm via WhatsApp</div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Your Name</label>
+          <input class="form-input" id="clientName" type="text" placeholder="e.g. Sarah">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Phone Number</label>
+          <input class="form-input" id="clientPhone" type="tel" placeholder="+27 ...">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Date</label>
+          <input class="form-input" id="rideDate" type="date">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Time</label>
+          <input class="form-input" id="rideTime" type="time">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Service Type</label>
+          <select class="form-select" id="serviceType">
+            <option value="">Select...</option>
+            <option>Airport Transfer</option>
+            <option>City Tour</option>
+            <option>Winelands Tour</option>
+            <option>Peninsula Tour</option>
+            <option>Night Out</option>
+            <option>Corporate Transfer</option>
+            <option>Custom Trip</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Passengers</label>
+          <select class="form-select" id="passengers">
+            <option>1</option><option>2</option><option>3</option><option>4</option><option>5+</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Pickup Location</label>
+        <input class="form-input" id="pickup" type="text" placeholder="Hotel name or address...">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Destination</label>
+        <input class="form-input" id="destination" type="text" placeholder="Where are you going?">
+      </div>
+      <button class="submit-btn" onclick="submitBooking()">🚘 Send Booking via WhatsApp</button>
+    </div>
+    <div class="form-success" id="formSuccess">
+      <div class="success-icon">🎉</div>
+      <h3>Booking Sent!</h3>
+      <p>James will confirm your ride shortly via WhatsApp.</p>
+      <button class="submit-btn" style="margin-top:20px;" onclick="closeBookingForm()">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+// MAP
+const map = L.map('map', { center: [-33.95, 18.55], zoom: 9, zoomControl: true, attributionControl: false });
+L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', { maxZoom: 19 }).addTo(map);
+const ls = document.createElement('style');
+ls.textContent = `.leaflet-popup-content-wrapper,.leaflet-popup-tip{background:transparent!important;box-shadow:none!important;padding:0!important}.leaflet-popup-content{margin:0!important}`;
+document.head.appendChild(ls);
+
+const destinations = [
+  { name:"Table Mountain", emoji:"⛰️", lat:-33.9668, lng:18.4256, color:"#E8440A", desc:"Iconic cable car views" },
+  { name:"V&A Waterfront", emoji:"🛥️", lat:-33.9080, lng:18.4202, color:"#F97316", desc:"Shopping & harbour dining" },
+  { name:"Camps Bay Beach", emoji:"🏖️", lat:-33.9507, lng:18.3776, color:"#16A34A", desc:"Luxury beachfront strip" },
+  { name:"Kirstenbosch Gardens", emoji:"🌿", lat:-33.9875, lng:18.4327, color:"#E8440A", desc:"World-class botanical garden" },
+  { name:"Cape Point", emoji:"🦅", lat:-34.3508, lng:18.4846, color:"#F97316", desc:"Southern tip of Africa" },
+  { name:"Boulders Beach", emoji:"🐧", lat:-34.1986, lng:18.4534, color:"#16A34A", desc:"African penguin colony" },
+  { name:"Stellenbosch Wine Route", emoji:"🍷", lat:-33.9379, lng:18.8634, color:"#E8440A", desc:"World-class wine estates" },
+  { name:"Somerset West", emoji:"🏘️", lat:-34.0757, lng:18.8433, color:"#F97316", desc:"Helderberg gateway" },
+  { name:"Robben Island", emoji:"🏛️", lat:-33.8076, lng:18.3712, color:"#16A34A", desc:"UNESCO heritage site" },
+  { name:"Bo-Kaap", emoji:"🎨", lat:-33.9182, lng:18.4143, color:"#E8440A", desc:"Colourful Cape Malay quarter" },
+];
+
+destinations.forEach(d => {
+  const icon = L.divIcon({
+    html:`<div style="background:${d.color};width:34px;height:34px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);display:flex;align-items:center;justify-content:center;box-shadow:0 2px 10px rgba(0,0,0,0.2);border:2px solid rgba(255,255,255,0.8);"><span style="transform:rotate(45deg);font-size:14px">${d.emoji}</span></div>`,
+    iconSize:[34,34],iconAnchor:[17,34],popupAnchor:[0,-36],className:'',
+  });
+  L.marker([d.lat,d.lng],{icon}).addTo(map).bindPopup(L.popup({maxWidth:180}).setContent(`
+    <div style="font-family:'Outfit',sans-serif;background:#fff;color:#1A1208;padding:10px 14px;border-radius:10px;border:1px solid ${d.color};min-width:140px;box-shadow:0 4px 12px rgba(0,0,0,0.12);">
+      <strong style="display:block;font-size:13px;color:${d.color};margin-bottom:3px;">${d.emoji} ${d.name}</strong>
+      <span style="font-size:11px;color:#9A8878;">${d.desc}</span>
+    </div>`));
+});
+
+const dl = document.getElementById('dest-list');
+destinations.forEach(d => {
+  const t = document.createElement('div');
+  t.className='dest-tag';
+  t.innerHTML=`<div class="dest-dot" style="background:${d.color}"></div>${d.emoji} ${d.name}`;
+  t.onclick=()=>map.setView([d.lat,d.lng],13,{animate:true});
+  dl.appendChild(t);
+});
+
+// QR CODE
+new QRCode(document.getElementById("qrcode"),{text:window.location.href,width:180,height:180,colorDark:"#E8440A",colorLight:"#ffffff",correctLevel:QRCode.CorrectLevel.H});
+
+// TOAST
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2800);
+}
+
+// BOOKING FORM
+function openBookingForm(){
+  document.getElementById('bookingModal').classList.add('open');
+  document.getElementById('formContent').style.display='block';
+  document.getElementById('formSuccess').style.display='none';
+  document.getElementById('rideDate').valueAsDate=new Date();
+}
+function closeBookingForm(){
+  document.getElementById('bookingModal').classList.remove('open');
+}
+function submitBooking(){
+  const name=document.getElementById('clientName').value.trim();
+  const phone=document.getElementById('clientPhone').value.trim();
+  const date=document.getElementById('rideDate').value;
+  const time=document.getElementById('rideTime').value;
+  const service=document.getElementById('serviceType').value;
+  const pax=document.getElementById('passengers').value;
+  const pickup=document.getElementById('pickup').value.trim();
+  const dest=document.getElementById('destination').value.trim();
+  if(!name||!phone||!date||!service){showToast('⚠️ Please fill in name, phone, date & service');return;}
+  const msg=`Hi James! 👋 I'd like to book a ride.\n\n👤 Name: ${name}\n📞 Phone: ${phone}\n📅 Date: ${date}${time?' at '+time:''}\n🚘 Service: ${service}\n👥 Passengers: ${pax}\n📍 Pickup: ${pickup||'TBD'}\n🏁 Destination: ${dest||'TBD'}`;
+  window.open(`https://wa.me/27712345678?text=${encodeURIComponent(msg)}`,'_blank');
+  document.getElementById('formContent').style.display='none';
+  document.getElementById('formSuccess').style.display='block';
+}
+document.getElementById('bookingModal').addEventListener('click',function(e){if(e.target===this)closeBookingForm();});
+
+// SAVE CONTACT (vCard)
+function saveContact(){
+  const vcard=`BEGIN:VCARD\nVERSION:3.0\nFN:James Dlamini\nORG:Cape Rides\nTITLE:Personal Driver\nTEL;TYPE=CELL:+27712345678\nEMAIL:james@caperides.co.za\nURL:https://www.caperides.co.za\nNOTE:Personal Driver – Cape Town · Winelands · Peninsula\nEND:VCARD`;
+  const blob=new Blob([vcard],{type:'text/vcard'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url; a.download='James_Dlamini_Driver.vcf'; a.click();
+  URL.revokeObjectURL(url);
+  showToast('💾 Contact saved to your phone!');
+}
+
+// SHARE CARD
+async function shareCard(){
+  const shareData={title:'James Dlamini – Personal Driver Cape Town',text:'🚘 Need a reliable personal driver in Cape Town? Check out James – great rates, 5-star service!',url:window.location.href};
+  if(navigator.share){try{await navigator.share(shareData);}catch(e){}}
+  else{navigator.clipboard.writeText(window.location.href).then(()=>showToast('🔗 Link copied to clipboard!'));}
+}
+</script>
+</body>
+</html>
